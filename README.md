@@ -29,6 +29,7 @@ Seerr ────────────────> Jellyfin (authentication
      /data/downloads/{incomplete,complete}
 
 FlareSolverr is available only to Docker-internal services when an indexer requires it.
+Bazarr connects to Radarr and Sonarr to manage subtitle files beside completed media.
 ```
 
 ### Services
@@ -42,6 +43,7 @@ FlareSolverr is available only to Docker-internal services when an indexer requi
 | Prowlarr | Centrally manages indexers and synchronizes them with Radarr and Sonarr. |
 | Radarr | Searches, monitors, imports, and organizes movies. |
 | Sonarr | Searches, monitors, imports, and organizes TV series and episodes. |
+| Bazarr | Connects to Radarr and Sonarr to find, download, and manage subtitle files alongside media. |
 | Seerr | Lets users request movies and TV; passes approved requests to Radarr/Sonarr. |
 | Jellyfin | Serves the completed media libraries. |
 | FlareSolverr | Optional helper for compatible Cloudflare-protected indexers; not exposed publicly. |
@@ -84,8 +86,8 @@ All services that exchange files should see the same host paths and the same con
 
 | Host path | Container path | Used by |
 | --- | --- | --- |
-| `/data/media/movies` | `/movies` | Radarr, Jellyfin |
-| `/data/media/tv` | `/tv` | Sonarr, Jellyfin |
+| `/data/media/movies` | `/movies` | Radarr, Bazarr, Jellyfin |
+| `/data/media/tv` | `/tv` | Sonarr, Bazarr, Jellyfin |
 | `/data/downloads` | `/downloads` | qBittorrent, Radarr, Sonarr |
 | `/opt/media-stack/config/<service>` | `/config` | Respective service |
 
@@ -113,6 +115,7 @@ Keep the Compose file, an example environment file, and per-service configuratio
     ├── prowlarr/
     ├── radarr/
     ├── sonarr/
+    ├── bazarr/
     ├── seerr/
     ├── jellyfin/
     └── flaresolverr/
@@ -158,9 +161,10 @@ Keep port forwarding optional and provider-dependent. If it is enabled, configur
 4. In Prowlarr, add Radarr and Sonarr as applications. Supply their internal Docker service URLs and API keys through the application UI; never commit those keys.
 5. In Radarr, add qBittorrent as the movie download client. Add `/movies` as a root folder and confirm importing is enabled.
 6. In Sonarr, add qBittorrent as the TV download client. Add `/tv` as a root folder and confirm importing is enabled.
-7. Configure Jellyfin libraries to use `/movies` and `/tv`.
-8. Connect Seerr to Jellyfin for user/library data, then to Radarr and Sonarr for requests. Test a request through to the relevant *arr application.
-9. Add FlareSolverr only when an explicitly supported indexer needs it. Keep it on an internal Docker network with no host port published.
+7. Configure Bazarr and connect it to Radarr and Sonarr.
+8. Configure Jellyfin libraries to use `/movies` and `/tv`.
+9. Connect Seerr to Jellyfin for user/library data, then to Radarr and Sonarr for requests. Test a request through to the relevant *arr application.
+10. Add FlareSolverr only when an explicitly supported indexer needs it. Keep it on an internal Docker network with no host port published.
 
 Prefer Docker service names (for example `http://radarr:7878`) for communication between containers. This avoids hard-coded host addresses and keeps traffic on the Docker network.
 
